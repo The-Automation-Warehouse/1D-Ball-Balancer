@@ -11,6 +11,8 @@
 #define echo 6	
 #define buzzer 5
 #define SERVO_PIN 9
+#define BLUE_LED 10
+#define RED_LED 11
 
 // Each value has 10 spaces reserved for it in the EEPROM
 float Kp = 0;
@@ -22,7 +24,6 @@ String KdStr = "";
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 int currentLine = 0;
-int currentMenuLine = 0;
 Servo servo;
 
 int aState;
@@ -42,7 +43,7 @@ void setup() {
   Serial.begin(115200);
   lcd.init();
   lcd.blink_off();
-  lcd.cursor_off();
+  lcd.cursor_on();
   lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -85,12 +86,7 @@ void setup() {
   delay(1000);
 
   lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Kp: ");
-  lcd.print(Kp);
-  lcd.setCursor(0, 1);
-  lcd.print("Ki: ");
-  lcd.print(Ki);
+  displayMenu();
 
 }
 
@@ -107,40 +103,58 @@ void loop() {
         if (digitalRead(encoderB) != aState) { 
           encoderPos ++;
           if (editMode) {
-            if (currentMenuLine == 0) {
+            lcd.setCursor(4, 0);
+            if (currentLine == 0) {
               Kp += 1;
-              lcd.setCursor(4, 0);
               lcd.print(Kp);
-            } else if (currentMenuLine == 1) {
+            } else if (currentLine == 1) {
               Ki += 1;
-              lcd.setCursor(4, 1);
               lcd.print(Ki);
-            } else if (currentMenuLine == 2) {
+            } else if (currentLine == 2) {
               Kd += 1;
-              lcd.setCursor(4, 1);
               lcd.print(Kd);
+            } else if (currentLine == 3) {
+              menuMode = false;
+              digitalWrite(buzzer, HIGH);
+              delay(50);
+              digitalWrite(buzzer, LOW);
+              delay(50);
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Balance mode");
+              lcd.setCursor(0, 1);
+              lcd.print("Click to exit");
             }
           } else {
-            scrollUp();
+            scrollDown();
           }
         } else {
           encoderPos --;
           if (editMode) {
-            if (currentMenuLine == 0) {
-              Kp += 1;
-              lcd.setCursor(4, 0);
+            lcd.setCursor(4, 0);
+            if (currentLine == 0) {
+              Kp -= 1;
               lcd.print(Kp);
-            } else if (currentMenuLine == 1) {
-              Ki += 1;
-              lcd.setCursor(4, 1);
+            } else if (currentLine == 1) {
+              Ki -= 1;
               lcd.print(Ki);
-            } else if (currentMenuLine == 2) {
-              Kd += 1;
-              lcd.setCursor(4, 1);
+            } else if (currentLine == 2) {
+              Kd -= 1;
               lcd.print(Kd);
+            } else if (currentLine == 3) {
+              menuMode = false;
+              digitalWrite(buzzer, HIGH);
+              delay(50);
+              digitalWrite(buzzer, LOW);
+              delay(50);
+              lcd.clear();
+              lcd.setCursor(0, 0);
+              lcd.print("Balance mode");
+              lcd.setCursor(0, 1);
+              lcd.print("Click to exit");
             }
           } else {
-            scrollDown();
+            scrollUp();
           }
         } 
         Serial.print("Position: ");
@@ -187,7 +201,8 @@ void loop() {
 void balance() {
 
   if (digitalRead(encoderSwitch) == LOW) {
-    editMode = menuMode;
+    menuMode = true;
+    lcd.cursor_on();
     lcd.setCursor(15, 1);
     lcd.print("E");
     delay(500);
@@ -236,7 +251,7 @@ void balance() {
 
 
 void displayMenu() {
-  switch (currentMenuLine) {
+  switch (currentLine) {
     case 0:
       lcd.setCursor(0, 0);
       lcd.print("Kp: ");
@@ -244,6 +259,7 @@ void displayMenu() {
       lcd.setCursor(0, 1);
       lcd.print("Ki: ");
       lcd.print(Ki);
+      lcd.setCursor(4, 0);
       break;
     case 1:
       lcd.setCursor(0, 0);
@@ -252,18 +268,28 @@ void displayMenu() {
       lcd.setCursor(0, 1);
       lcd.print("Kd: ");
       lcd.print(Kd);
+      lcd.setCursor(4, 0);
       break;
     case 2:
       lcd.setCursor(0, 0);
       lcd.print("Kd: ");
       lcd.print(Kd);
       lcd.setCursor(0, 1);
-      lcd.print("Distance: ");
+      lcd.print("Start? ");
+      lcd.print(" ");
+      lcd.setCursor(4, 0);
+      break;
+    case 3:
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Start? ");
+      lcd.print(" ");
+      lcd.setCursor(6, 0);
       break;
   }
 
   Serial.print("Current menu line: ");
-  Serial.println(currentMenuLine);
+  Serial.println(currentLine);
 
 
 }
@@ -274,13 +300,10 @@ void displayMenu() {
 
 
 void scrollUp() {
-  if (currentMenuLine > 0) {
-    currentMenuLine--;
-  } else {
-    currentMenuLine = 2;
-  }
 
-  if (currentLine == 1) {
+  if (currentLine < 3) {
+    currentLine++;
+  } else {
     currentLine = 0;
   }
 
@@ -288,14 +311,11 @@ void scrollUp() {
 }
 
 void scrollDown() {
-  if (currentMenuLine < 2) {
-    currentMenuLine++;
+  
+  if (currentLine > 0) {
+    currentLine--;
   } else {
-    currentMenuLine = 0;
-  }
-
-  if (currentLine == 0) {
-    currentLine = 1;
+    currentLine = 3;
   }
 
   displayMenu();
