@@ -68,20 +68,30 @@ void setup() {
   pinMode(trigger, OUTPUT);
   pinMode(echo, INPUT);
   pinMode(buzzer, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(BLUE_LED, OUTPUT);
   digitalWrite(buzzer, LOW);
+  digitalWrite(RED_LED, LOW);
+  digitalWrite(BLUE_LED, LOW);
 
   // Do one long and two short beeps to indicate that the system is ready
   digitalWrite(buzzer, HIGH);
+  digitalWrite(RED_LED, HIGH);
   delay(200);
   digitalWrite(buzzer, LOW);
+  digitalWrite(RED_LED, LOW);
   delay(100);
   digitalWrite(buzzer, HIGH);
+  digitalWrite(BLUE_LED, HIGH);
   delay(100);
   digitalWrite(buzzer, LOW);
+  digitalWrite(BLUE_LED, LOW);
   delay(100);
   digitalWrite(buzzer, HIGH);
+  digitalWrite(BLUE_LED, HIGH);
   delay(100);
   digitalWrite(buzzer, LOW);
+  digitalWrite(BLUE_LED, LOW);
 
   delay(1000);
 
