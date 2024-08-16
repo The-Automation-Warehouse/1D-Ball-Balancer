@@ -110,7 +110,7 @@ void loop() {
     aState = digitalRead(encoderA);
     if (aState != aLastState) {
       if (doOnce) {     
-        if (digitalRead(encoderB) != aState) { 
+        if (digitalRead(encoderB) == aState) { 
           encoderPos ++;
           if (editMode) {
             lcd.setCursor(4, 0);
@@ -247,12 +247,12 @@ void balance() {
   }
 
   // PID variables
-  // The whole tray is 240mm long
+  // The whole tray is 220mm long
   // The servo can rotate 180 degrees
-  // But its limited to +-45 degrees
+  // But its limited to +-20 degrees
   // The zero point is at 90 degrees
   // The target distance is 100mm (acounting for the size of the ball)
-  float setpoint = 120;
+  float setpoint = 10.5;
   float error = 0;
   float lastError = 0;
   float integral = 0;
@@ -269,13 +269,15 @@ void balance() {
   digitalWrite(trigger, LOW);
   duration = pulseIn(echo, HIGH);
   distance = (duration / 2) / 29.1;
+  Serial.print("Distance: ");
+  Serial.println(distance);
 
   error = setpoint - distance;
   integral += error;
   derivative = error - lastError;
   output = Kp * error + Ki * integral + Kd * derivative;
 
-  angle = map(output, -100, 100, 45, 135);
+  angle = map(output, -100, 100, 110, 70);
   servo.write(angle);
 
 
