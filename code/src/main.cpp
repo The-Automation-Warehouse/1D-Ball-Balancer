@@ -131,6 +131,7 @@ void loop() {
               digitalWrite(buzzer, LOW);
               delay(50);
               lcd.clear();
+              lcd.cursor_off();
               lcd.setCursor(0, 0);
               lcd.print("Balance mode");
               lcd.setCursor(0, 1);
@@ -182,7 +183,6 @@ void loop() {
     if (digitalRead(encoderSwitch) == LOW) {
       if (editMode) {
         editMode = false;
-        lcd.cursor_off();
         lcd.setCursor(15, 0);
         lcd.print(" ");
         // Clear the EEPROM
