@@ -34,6 +34,8 @@ bool doOnce = true;
 bool editMode = false;
 bool menuMode = true;
 
+bool resetBalance = false;
+
 void balance();
 void displayMenu();
 void scrollUp();
@@ -43,7 +45,7 @@ void setup() {
   Serial.begin(115200);
   lcd.init();
   lcd.blink_off();
-  lcd.cursor_on();
+  lcd.cursor_off();
   lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -96,6 +98,7 @@ void setup() {
   delay(1000);
 
   lcd.clear();
+  lcd.cursor_on();
   displayMenu();
 
 }
@@ -117,12 +120,27 @@ void loop() {
             if (currentLine == 0) {
               Kp -= 1;
               lcd.print(Kp);
+              lcd.setCursor(4, 0);
+              digitalWrite(buzzer, HIGH);
+              delay(20);
+              digitalWrite(buzzer, LOW);
+              delay(20);
             } else if (currentLine == 1) {
               Ki -= 1;
               lcd.print(Ki);
+              lcd.setCursor(4, 0);
+              digitalWrite(buzzer, HIGH);
+              delay(20);
+              digitalWrite(buzzer, LOW);
+              delay(20);
             } else if (currentLine == 2) {
               Kd -= 1;
               lcd.print(Kd);
+              lcd.setCursor(4, 0);
+              digitalWrite(buzzer, HIGH);
+              delay(20);
+              digitalWrite(buzzer, LOW);
+              delay(20);
             } else if (currentLine == 3) {
               menuMode = false;
               editMode = false;
@@ -147,12 +165,27 @@ void loop() {
             if (currentLine == 0) {
               Kp += 1;
               lcd.print(Kp);
+              lcd.setCursor(4, 0);
+              digitalWrite(buzzer, HIGH);
+              delay(20);
+              digitalWrite(buzzer, LOW);
+              delay(20);
             } else if (currentLine == 1) {
               Ki += 1;
               lcd.print(Ki);
+              lcd.setCursor(4, 0);
+              digitalWrite(buzzer, HIGH);
+              delay(20);
+              digitalWrite(buzzer, LOW);
+              delay(20);
             } else if (currentLine == 2) {
               Kd += 1;
               lcd.print(Kd);
+              lcd.setCursor(4, 0);
+              digitalWrite(buzzer, HIGH);
+              delay(20);
+              digitalWrite(buzzer, LOW);
+              delay(20);
             } else if (currentLine == 3) {
               menuMode = false;
               editMode = false;
@@ -171,8 +204,6 @@ void loop() {
             scrollUp();
           }
         } 
-        Serial.print("Position: ");
-        Serial.println(encoderPos);
         doOnce = false;
       } else {
       doOnce = true;
@@ -247,12 +278,7 @@ void balance() {
   }
 
   // PID variables
-  // The whole tray is 220mm long
-  // The servo can rotate 180 degrees
-  // But its limited to +-20 degrees
-  // The zero point is at 90 degrees
-  // The target distance is 100mm (acounting for the size of the ball)
-  float setpoint = 10.5;
+  float setpoint = 8.5;
   float error = 0;
   float lastError = 0;
   float integral = 0;
@@ -269,16 +295,41 @@ void balance() {
   digitalWrite(trigger, LOW);
   duration = pulseIn(echo, HIGH);
   distance = (duration / 2) / 29.1;
-  Serial.print("Distance: ");
-  Serial.println(distance);
 
-  error = setpoint - distance;
-  integral += error;
-  derivative = error - lastError;
-  output = Kp * error + Ki * integral + Kd * derivative;
+  // The sensor accuracy is not great
+  // Last resort bodge
 
-  angle = map(output, -100, 100, 110, 70);
-  servo.write(angle);
+  if (distance < 6)
+  {
+    resetBalance = true;
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(BLUE_LED, LOW);
+  }
+
+  if (resetBalance)
+  {
+    servo.write(75);
+    if (distance > 20)
+    {
+      resetBalance = false;
+      digitalWrite(RED_LED, LOW);
+      digitalWrite(BLUE_LED, HIGH);
+    }
+  } else {
+  
+    error = setpoint - distance;
+    integral += error;
+    derivative = error - lastError;
+    output = Kp * error + Ki * integral + Kd * derivative;
+
+    angle = map(output, -100, 100, 110, 70);
+
+    if (error > 0.5 || error < -0.5)
+    {
+      servo.write(angle);
+    }
+
+  }
 
 
 }
