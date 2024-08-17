@@ -148,6 +148,9 @@ void loop() {
               delay(50);
               digitalWrite(buzzer, LOW);
               delay(50);
+              Serial.println("Kp: " + String(Kp));
+              Serial.println("Ki: " + String(Ki));
+              Serial.println("Kd: " + String(Kd));
               lcd.clear();
               lcd.cursor_off();
               lcd.setCursor(0, 0);
@@ -193,6 +196,9 @@ void loop() {
               delay(50);
               digitalWrite(buzzer, LOW);
               delay(50);
+              Serial.println("Kp: " + String(Kp));
+              Serial.println("Ki: " + String(Ki));
+              Serial.println("Kd: " + String(Kd));
               lcd.clear();
               lcd.cursor_off();
               lcd.setCursor(0, 0);
@@ -242,7 +248,6 @@ void loop() {
         
       } else {
         editMode = true;
-        lcd.cursor_on();
         lcd.setCursor(15, 0);
         lcd.print("*");
       }
@@ -278,7 +283,7 @@ void balance() {
   }
 
   // PID variables
-  float setpoint = 8.5;
+  float setpoint = 11;
   float error = 0;
   float lastError = 0;
   float integral = 0;
@@ -295,21 +300,23 @@ void balance() {
   digitalWrite(trigger, LOW);
   duration = pulseIn(echo, HIGH);
   distance = (duration / 2) / 29.1;
+  Serial.println(distance);
 
   // The sensor accuracy is not great
   // Last resort bodge
 
-  if (distance < 6)
+  if (distance < 6 || distance > 24)
   {
     resetBalance = true;
     digitalWrite(RED_LED, HIGH);
     digitalWrite(BLUE_LED, LOW);
+    distance = 4;
   }
 
   if (resetBalance)
   {
-    servo.write(75);
-    if (distance > 20)
+    //servo.write(68);
+    if (distance > 6 && distance < 24)
     {
       resetBalance = false;
       digitalWrite(RED_LED, LOW);
@@ -326,7 +333,7 @@ void balance() {
 
     if (error > 0.5 || error < -0.5)
     {
-      servo.write(angle);
+      //servo.write(angle);
     }
 
   }
