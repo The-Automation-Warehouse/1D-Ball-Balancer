@@ -25,7 +25,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 int currentLine = 0;
 Servo servo;
 
-SharpIR sensor(SharpIR::GP2Y0A21YK0F, A4);
+SharpIR sensor(SharpIR::GP2Y0A41SK0F, A3);
 
 int aState;
 int aLastState;  
@@ -34,8 +34,6 @@ bool doOnce = true;
 
 bool editMode = false;
 bool menuMode = true;
-
-bool resetBalance = false;
 
 void balance();
 void displayMenu();
@@ -290,49 +288,25 @@ void balance() {
   float output = 0;
   float angle = 0;
   float distance = 0;
-  float duration = 0;
 
   distance = sensor.getDistance();
   Serial.println(distance);
 
-  // The sensor accuracy is not great
-  // Last resort bodge
 
-  if (distance < 6 || distance > 24)
+  error = setpoint - distance;
+  integral += error;
+  derivative = error - lastError;
+  output = Kp * error + Ki * integral + Kd * derivative;
+  angle = map(output, -100, 100, 110, 70);
+
+  if (error > 0.5 || error < -0.5)
   {
-    resetBalance = true;
-    digitalWrite(RED_LED, HIGH);
-    digitalWrite(BLUE_LED, LOW);
-    distance = 4;
+    servo.write(angle);
   }
-
-  if (resetBalance)
-  {
-    //servo.write(68);
-    if (distance > 6 && distance < 24)
-    {
-      resetBalance = false;
-      digitalWrite(RED_LED, LOW);
-      digitalWrite(BLUE_LED, HIGH);
-    }
-  } else {
-  
-    error = setpoint - distance;
-    integral += error;
-    derivative = error - lastError;
-    output = Kp * error + Ki * integral + Kd * derivative;
-
-    angle = map(output, -100, 100, 110, 70);
-
-    if (error > 0.5 || error < -0.5)
-    {
-      //servo.write(angle);
-    }
-
-  }
-
 
 }
+
+
 
 
 
