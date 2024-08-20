@@ -3,12 +3,11 @@
 #include <LiquidCrystal_I2C.h>
 #include <EEPROM.h>
 #include <Servo.h>
+#include <SharpIR.h>
 
 #define encoderA 2
 #define encoderB 3
 #define encoderSwitch 4
-#define trigger 7
-#define echo 6	
 #define buzzer 5
 #define SERVO_PIN 9
 #define BLUE_LED 10
@@ -25,6 +24,8 @@ String KdStr = "";
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 int currentLine = 0;
 Servo servo;
+
+SharpIR sensor(SharpIR::GP2Y0A21YK0F, A4);
 
 int aState;
 int aLastState;  
@@ -67,8 +68,6 @@ void setup() {
   pinMode(encoderA, INPUT);
   pinMode(encoderB, INPUT);
   pinMode(encoderSwitch, INPUT_PULLUP);
-  pinMode(trigger, OUTPUT);
-  pinMode(echo, INPUT);
   pinMode(buzzer, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(BLUE_LED, OUTPUT);
@@ -293,13 +292,7 @@ void balance() {
   float distance = 0;
   float duration = 0;
 
-  digitalWrite(trigger, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigger, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigger, LOW);
-  duration = pulseIn(echo, HIGH);
-  distance = (duration / 2) / 29.1;
+  distance = sensor.getDistance();
   Serial.println(distance);
 
   // The sensor accuracy is not great
