@@ -35,6 +35,16 @@ bool doOnce = true;
 bool editMode = false;
 bool menuMode = true;
 
+// PID variables
+float setpoint = 8;
+float error = 0;
+float lastError = 0;
+float integral = 0;
+float derivative = 0;
+float output = 0;
+float angle = 0;
+float distance = 0;
+
 void balance();
 void displayMenu();
 void scrollUp();
@@ -61,7 +71,7 @@ void setup() {
   Kd = KdStr.toFloat();
 
   servo.attach(SERVO_PIN);
-  servo.write(90);
+  servo.write(84);
 
   pinMode(encoderA, INPUT);
   pinMode(encoderB, INPUT);
@@ -131,7 +141,7 @@ void loop() {
               digitalWrite(buzzer, LOW);
               delay(20);
             } else if (currentLine == 2) {
-              Kd -= 1;
+              Kd -= 100;
               lcd.print(Kd);
               lcd.setCursor(4, 0);
               digitalWrite(buzzer, HIGH);
@@ -179,7 +189,7 @@ void loop() {
               digitalWrite(buzzer, LOW);
               delay(20);
             } else if (currentLine == 2) {
-              Kd += 1;
+              Kd += 100;
               lcd.print(Kd);
               lcd.setCursor(4, 0);
               digitalWrite(buzzer, HIGH);
@@ -279,30 +289,23 @@ void balance() {
     return;
   }
 
-  // PID variables
-  float setpoint = 11;
-  float error = 0;
-  float lastError = 0;
-  float integral = 0;
-  float derivative = 0;
-  float output = 0;
-  float angle = 0;
-  float distance = 0;
 
   distance = sensor.getDistance();
-  Serial.println(distance);
 
 
   error = setpoint - distance;
   integral += error;
   derivative = error - lastError;
+  lastError = error;
   output = Kp * error + Ki * integral + Kd * derivative;
-  angle = map(output, -100, 100, 110, 70);
+  angle = map(output, -100, 100, 84+20, 84-20);
 
   if (error > 0.5 || error < -0.5)
   {
     servo.write(angle);
   }
+
+  delay(10);
 
 }
 

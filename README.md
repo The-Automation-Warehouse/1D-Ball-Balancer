@@ -9,7 +9,6 @@ Used github copilot when writing code and README
 This project is and Arduino Nano based 1D Ball Balancer with a custom adjustable PID controller.
 It uses the GP2Y0A41SK0F IR sensor to detect the position of the ball and a servo motor to balance it on a beam.
 
-//////////////////////////// Video Link ////////////////////////////
 
 ## Components Used
 - Arduino Nano
